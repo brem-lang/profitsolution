@@ -210,17 +210,11 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
                         <div class="reg-form__group"><input class="reg-form__input" type="email" data-input="reg-form-email" dir="ltr" required="" placeholder="Indirizzo email"> <span data-error="error-email" class="reg-form__error"></span>
                         </div>
                         <div class="reg-form__group">
-                          <div class="iti iti--allow-dropdown iti--separate-dial-code">
-
-                            <div class="iti__flag-container">
-                              <div class="iti__selected-flag" role="combobox" aria-owns="country-listbox" style="background: none;" tabindex="0" title="Italy: +39">
-                                <div class="iti__flag iti__it"></div>
-                                <div data-input="phoneCountryCodeSelect" class="iti__selected-dial-code" style="margin-left: 5px !important; font-size: 18px;">+39</div>
-                              </div>
-                            </div>
-
-                            <input class="reg-form__input" dir="ltr" type="tel" data-input="reg-form-phone" required="" autocomplete="off" data-intl-tel-input-id="0" placeholder="312 345 6789" style="padding-left: 96px;">
-                          </div> <span data-error="error-phone_number" class="reg-form__error"></span>
+                          <input class="reg-form__input" dir="ltr" type="tel" data-input="reg-form-phone" required="" autocomplete="tel-national" placeholder="312 345 6789">
+                          <span data-error="error-phone_number" class="reg-form__error"></span>
+                        </div>
+                        <div aria-hidden="true" style="position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;">
+                          <input type="text" name="website" tabindex="-1" autocomplete="off">
                         </div>
                         <button class="reg-form__button reg-form__button_submit" type="button" data-input="do-registration" data-event="form-submit">Registrati</button> <span data-error="error-country_iso_code" class="reg-form__error"></span>
                         <div data-input="reg-form__preloader" class="reg-form__preloader-wrap holder">
@@ -716,7 +710,6 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
       },
     });
   </script>
-  <script src="assets/scriptMulti.js"></script>
   <script>
   window.addEventListener('load', ()=>{
   
@@ -739,7 +732,7 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
   </script>
 <script type="module" src="assets/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495.img" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;2564f3004f3c4349ae9b70c712e30b39&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}"></script>
 
-<input id="phone" type="tel">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js" integrity="sha512-uZZS8rsETXJQX6Jy57Zdc7PAmP83GCjC1F/LX0xUj12wY5SlfUX+CVnYFEX89doutQPeFbI9FjUCkpuTWqlBwg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="assets/lead-form.js"></script>
 
 </body></html>

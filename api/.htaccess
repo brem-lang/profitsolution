@@ -1,0 +1,7 @@
+# Only the lead endpoint is publicly reachable in this folder
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+<Files "submit-lead.php">
+    Require all granted
+</Files>
