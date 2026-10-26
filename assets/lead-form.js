@@ -53,7 +53,7 @@
     var lastname = form.querySelector('[data-input="reg-form-lastname"]');
     var email = form.querySelector('[data-input="reg-form-email"]');
     var phone = form.querySelector('[data-input="reg-form-phone"]');
-    var honeypot = form.querySelector('[name="website"]');
+    var honeypot = form.querySelector('[name="hp_extra_field"]');
     var button = form.querySelector('[data-input="do-registration"]');
     if (!firstname || !lastname || !email || !phone || !button) return;
 

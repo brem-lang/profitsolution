@@ -17,7 +17,7 @@ header('Cache-Control: no-store');
 const MAX_BODY_BYTES     = 4096;
 const RATE_LIMIT_MAX     = 5;   // submissions...
 const RATE_LIMIT_WINDOW  = 600; // ...per IP per 10 minutes
-const UPSTREAM_TIMEOUT   = 15;
+const UPSTREAM_TIMEOUT   = 30;
 
 function respond(int $status, array $payload): never
 {
@@ -133,6 +133,7 @@ if ($apiKey === '' || !is_string($supabaseHost) || parse_url($supabaseUrl, PHP_U
 
 // Honeypot: real users never fill this hidden field.
 if (!empty($input['website'])) {
+    error_log(sprintf('[submit-lead] Honeypot triggered (length=%d)', strlen((string) json_encode($input['website']))));
     fail(400, 'Impossibile completare la registrazione.');
 }
 
@@ -185,6 +186,7 @@ $payload = [
     'ip_address'   => $ip,
     'click_id'     => $clickId,
     'funnel'       => $funnel,
+    'offer_name'   => 'profitsolutions',
 ];
 
 $ch = curl_init($supabaseUrl . '/functions/v1/submit-lead-nullypto');
