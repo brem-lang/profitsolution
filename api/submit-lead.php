@@ -152,9 +152,11 @@ $mobile    = preg_replace('/[\s\-().]/', '', $str('mobile')) ?? '';
 $clickId   = $str('click_id');
 // Lead country from the visitor's IP (Cloudflare's CF-IPCountry header; the
 // site only accepts traffic through Cloudflare, which sets it): Italy → IT,
-// Spain → ES, anywhere else or unknown → GB.
+// Spain → ES, anywhere else or unknown → LEAD_COUNTRY_FALLBACK (default GB).
+$fallback  = (string) ($env['LEAD_COUNTRY_FALLBACK'] ?? '');
+$fallback  = preg_match('/^[A-Z]{2}$/', $fallback) ? $fallback : 'GB';
 $ipCountry = strtoupper((string) ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''));
-$country   = in_array($ipCountry, ['IT', 'ES'], true) ? $ipCountry : 'GB';
+$country   = in_array($ipCountry, ['IT', 'ES'], true) ? $ipCountry : $fallback;
 
 $namePattern = "/^\p{L}[\p{L}\p{M}' .\-]{0,29}$/u";
 $errors = [];
@@ -215,9 +217,13 @@ $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 $curlErr = curl_error($ch);
 curl_close($ch);
 
+// One line per lead, no key and no personal data. 422/409/503 rather than
+// 502, which Cloudflare would replace with its own "Bad gateway" page.
+$sent = sprintf('sent country_code=%s click_id=%s', $country, $clickId !== '' ? $clickId : '-');
+
 if ($body === false) {
-    error_log('[submit-lead] Upstream request failed: ' . $curlErr);
-    fail(502, 'Servizio temporaneamente non disponibile. Riprova più tardi.');
+    error_log(sprintf('[submit-lead] %s → upstream request failed: %s', $sent, $curlErr));
+    fail(503, 'Servizio temporaneamente non disponibile. Riprova più tardi.');
 }
 
 $result = json_decode((string) $body, true);
@@ -226,9 +232,12 @@ $requestId = is_array($result) && is_string($result['request_id'] ?? null) ? $re
 if ($status < 200 || $status >= 300 || !is_array($result) || ($result['success'] ?? false) !== true) {
     // Log for troubleshooting (no API key, no lead PII), show a generic message.
     $upstreamMsg = is_array($result) && is_string($result['message'] ?? null) ? $result['message'] : 'non-JSON response';
-    error_log(sprintf('[submit-lead] Upstream rejected lead: status=%d request_id=%s message=%s',
-        $status, $requestId, substr($upstreamMsg, 0, 200)));
-    fail(502, 'Impossibile completare la registrazione. Verifica i dati o riprova più tardi.');
+    error_log(sprintf('[submit-lead] %s → rejected status=%d request_id=%s message="%s"',
+        $sent, $status, $requestId, substr($upstreamMsg, 0, 200)));
+    if ($status === 409) {
+        fail(409, 'Questo indirizzo e-mail o numero di telefono è già registrato.');
+    }
+    fail(422, 'Impossibile completare la registrazione. Verifica i dati o riprova più tardi.');
 }
 
 // Only redirect to an https URL on the Supabase host (or an explicitly allowed host).
@@ -240,8 +249,10 @@ $autologinHost = parse_url($autologin, PHP_URL_HOST);
 if (parse_url($autologin, PHP_URL_SCHEME) !== 'https'
     || !is_string($autologinHost)
     || !in_array(strtolower($autologinHost), array_map('strtolower', $allowedHosts), true)) {
-    error_log(sprintf('[submit-lead] Rejected autologin_url host for request_id=%s', $requestId));
-    fail(502, 'Registrazione ricevuta, ma il reindirizzamento non è disponibile. Ti contatteremo a breve.');
+    error_log(sprintf('[submit-lead] %s → accepted request_id=%s but autologin_url host is not allowed', $sent, $requestId));
+    fail(500, 'Registrazione ricevuta, ma il reindirizzamento non è disponibile. Ti contatteremo a breve.');
 }
 
+error_log(sprintf('[submit-lead] %s → accepted request_id=%s lead_id=%s', $sent, $requestId,
+    is_scalar($result['lead_id'] ?? null) ? (string) $result['lead_id'] : '-'));
 respond(200, ['success' => true, 'autologin_url' => $autologin]);
