@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/phone-check.php';
+require __DIR__ . '/email-check.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
@@ -169,8 +170,19 @@ if (!preg_match($namePattern, $firstname)) {
 if (!preg_match($namePattern, $lastname)) {
     $errors['last_name'] = 'Inserisci un cognome valido.';
 }
-if (strlen($email) > 254 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-    $errors['email'] = 'Inserisci un indirizzo email valido.';
+// Same email rules as the form (email-check.php). Typos are only suggested in
+// the browser (the visitor may confirm); here format, throwaway, fake and
+// domains that can't receive mail are rejected.
+$emailCheck = check_email($email);
+if (!$emailCheck['ok'] && $emailCheck['reason'] !== 'typo') {
+    $errors['email'] = EMAIL_MESSAGES[$emailCheck['reason']];
+    error_log(sprintf('[submit-lead] email rejected reason=%s', $emailCheck['reason'])); // reason only, never the address
+} else {
+    $email = strtolower($email);
+    if (!email_domain_receives_mail($email)) {
+        $errors['email'] = EMAIL_MESSAGES['domain'];
+        error_log('[submit-lead] email rejected reason=domain');
+    }
 }
 // Same IT/ES/GB mobile rules the form uses in the browser (phone-check.php).
 $phone = check_phone($mobile, 'IT');

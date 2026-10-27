@@ -4,14 +4,12 @@
   var ENDPOINT = 'api/submit-lead.php';
   var ITI_UTILS = 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/utils.js';
   var NAME_RE = /^[\p{L}][\p{L}\p{M}' .\-]{0,29}$/u;
-  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   var CLICK_ID_RE = /^[A-Za-z0-9._\-]{1,128}$/;
   var PHONE_COUNTRY = { it: 'it', es: 'es', en: 'gb' };
 
   var MESSAGES = {
     first_name: 'Inserisci un nome valido.',
     last_name: 'Inserisci un cognome valido.',
-    email: 'Inserisci un indirizzo email valido.',
     generic: 'Si è verificato un errore. Riprova più tardi.'
   };
 
@@ -72,6 +70,8 @@
     });
 
     var submitting = false;
+    // A suggested typo fix is shown once; submitting the same address again keeps it.
+    var typoShownFor = '';
 
     // Our own IT/ES/GB mobile rules (phone-check.js), so the check never
     // depends on intl-tel-input's utils.js having loaded from the CDN.
@@ -84,7 +84,13 @@
       var errors = {};
       if (!NAME_RE.test(firstname.value.trim())) errors.first_name = MESSAGES.first_name;
       if (!NAME_RE.test(lastname.value.trim())) errors.last_name = MESSAGES.last_name;
-      if (!EMAIL_RE.test(email.value.trim())) errors.email = MESSAGES.email;
+      var emailCheck = EmailCheck.check(email.value);
+      if (emailCheck.reason === 'typo' && typoShownFor !== email.value.trim()) {
+        typoShownFor = email.value.trim();
+        errors.email = { suggestion: emailCheck.suggestion };
+      } else if (!emailCheck.ok && emailCheck.reason !== 'typo') {
+        errors.email = EmailCheck.MESSAGES[emailCheck.reason];
+      }
       var phoneCheck = checkPhone();
       if (!phoneCheck.ok) errors.phone_number = PhoneCheck.MESSAGES[phoneCheck.reason];
       return errors;
@@ -98,7 +104,19 @@
       var errors = validate();
       var keys = Object.keys(errors);
       if (keys.length) {
-        keys.forEach(function (k) { setError(form, k, errors[k]); });
+        keys.forEach(function (k) {
+          if (k === 'email' && errors.email.suggestion) {
+            var el = form.querySelector('[data-error="error-email"]');
+            EmailCheck.renderSuggestion(el, I18N.t, errors.email.suggestion, function (fixed) {
+              email.value = fixed;
+              el.textContent = '';
+              el.style.display = 'none';
+            });
+            el.style.display = 'block';
+          } else {
+            setError(form, k, errors[k]);
+          }
+        });
         return;
       }
 
@@ -112,7 +130,7 @@
         body: JSON.stringify({
           firstname: firstname.value.trim(),
           lastname: lastname.value.trim(),
-          email: email.value.trim(),
+          email: email.value.trim().toLowerCase(),
           mobile: checkPhone().e164, // E.164, e.g. +393478129054
           click_id: getClickId(),
           website: honeypot ? honeypot.value : ''
