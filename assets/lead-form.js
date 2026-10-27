@@ -6,6 +6,7 @@
   var NAME_RE = /^[\p{L}][\p{L}\p{M}' .\-]{0,29}$/u;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   var CLICK_ID_RE = /^[A-Za-z0-9._\-]{1,128}$/;
+  var PHONE_COUNTRY = { it: 'it', es: 'es', en: 'gb' };
 
   var MESSAGES = {
     first_name: 'Inserisci un nome valido.',
@@ -23,7 +24,7 @@
   function setError(form, key, message) {
     var el = form.querySelector('[data-error="error-' + key + '"]');
     if (!el) return;
-    el.textContent = message || '';
+    el.textContent = message ? I18N.t(message) : '';
     el.style.display = message ? 'block' : 'none';
   }
 
@@ -58,10 +59,15 @@
     if (!firstname || !lastname || !email || !phone || !button) return;
 
     var iti = window.intlTelInput(phone, {
-      initialCountry: 'it',
-      preferredCountries: ['it'],
+      initialCountry: PHONE_COUNTRY[I18N.lang],
+      preferredCountries: ['it', 'es', 'gb'],
       separateDialCode: true,
       utilsScript: ITI_UTILS
+    });
+
+    // Phone country follows the selected language until the visitor types a number
+    I18N.onChange(function (lang) {
+      if (!phone.value.trim()) iti.setCountry(PHONE_COUNTRY[lang]);
     });
 
     var submitting = false;

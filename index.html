@@ -34,6 +34,8 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
   
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <script src="assets/i18n-dict.js"></script>
+  <script src="assets/lang-switcher.js"></script>
   <title>È stata lanciata al pubblico un'applicazione che utilizza l'intelligenza artificiale per generare guadagni.</title>
   <link href="assets/bootstrap.min.css" rel="stylesheet">
   <link href="assets/style.css" rel="stylesheet" type="text/css">
@@ -63,6 +65,7 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
   <a href="index.html" style="display: flex; align-items: center;">
     <img src="assets/logo.webp" alt="AI App – Home" style="height: 70px; width: auto;">
   </a>
+  <div data-lang-switcher="dropdown" style="margin-left:auto"></div>
 </div>
   </header>
 
@@ -665,10 +668,10 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
     const myChart = new Chart(ctx, {
       type: 'line', // Тип графика: 'line', 'bar', 'pie' и т.д.
       data: {
-        labels: ['Settimana 1', 'Settimana 2', 'Settimana 3', 'Settimana 4'], // Подписи по оси X
+        labels: ['Settimana 1', 'Settimana 2', 'Settimana 3', 'Settimana 4'].map((l) => I18N.t(l)), // Подписи по оси X
         datasets: [
           {
-            label: 'Guadagni generati',
+            label: I18N.t('Guadagni generati'),
             data: [3044.43, 5908.58, 8998.47, 10360.19], // Данные для "Money Made"
             borderColor: '#1e40af', // Цвет линии (синий, как в вашей таблице)
             backgroundColor: 'rgba(30, 64, 175, 0.2)', // Заливка под линией
@@ -676,7 +679,7 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
             tension: 0.4, // Плавность линии
           },
           {
-            label: 'Totale sul conto',
+            label: I18N.t('Totale sul conto'),
             data: [3394.43, 9303.01, 18301.48, 28661.67], // Данные для "Total in Account"
             borderColor: '#059669', // Другой цвет (например, зеленый)
             backgroundColor: 'rgba(5, 150, 105, 0.2)',
@@ -692,13 +695,13 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
             beginAtZero: true,
             title: {
               display: true,
-              text: 'Importo (€)',
+              text: I18N.t('Importo (€)'),
             },
           },
           x: {
             title: {
               display: true,
-              text: 'Settimane',
+              text: I18N.t('Settimane'),
             },
           },
         },
@@ -708,6 +711,14 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
           },
         },
       },
+    });
+    I18N.onChange(() => {
+      myChart.data.labels = ['Settimana 1', 'Settimana 2', 'Settimana 3', 'Settimana 4'].map((l) => I18N.t(l));
+      myChart.data.datasets[0].label = I18N.t('Guadagni generati');
+      myChart.data.datasets[1].label = I18N.t('Totale sul conto');
+      myChart.options.scales.y.title.text = I18N.t('Importo (€)');
+      myChart.options.scales.x.title.text = I18N.t('Settimane');
+      myChart.update();
     });
   </script>
   <script>
@@ -719,6 +730,7 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
   
   const clone = link.cloneNode(true);
   link.replaceWith(clone);
+  I18N.rebind(link, clone);
   
   const className = Array.from(clone.classList).find(cls => cls.startsWith('super-url-'));
   
@@ -733,6 +745,6 @@ q(e.referrer)+"&dt="+q(e.title)+"&vtm="+(new Date).getTime()+(m?"&cid="+c:"")+(A
 <script type="module" src="assets/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495.img" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;2564f3004f3c4349ae9b70c712e30b39&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/intlTelInput.min.js" integrity="sha512-uZZS8rsETXJQX6Jy57Zdc7PAmP83GCjC1F/LX0xUj12wY5SlfUX+CVnYFEX89doutQPeFbI9FjUCkpuTWqlBwg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="assets/lead-form.js?v=3"></script>
+<script src="assets/lead-form.js?v=4"></script>
 
 </body></html>
