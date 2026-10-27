@@ -151,6 +151,8 @@ $lastname  = $str('lastname');
 $email     = $str('email');
 $mobile    = preg_replace('/[\s\-().]/', '', $str('mobile')) ?? '';
 $clickId   = $str('click_id');
+// Lead country follows the page language the visitor submitted in.
+$country   = ['it' => 'IT', 'es' => 'ES', 'en' => 'GB'][$str('lang')] ?? $country;
 
 $namePattern = "/^\p{L}[\p{L}\p{M}' .\-]{0,29}$/u";
 $errors = [];
