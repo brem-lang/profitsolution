@@ -12,7 +12,6 @@
     first_name: 'Inserisci un nome valido.',
     last_name: 'Inserisci un cognome valido.',
     email: 'Inserisci un indirizzo email valido.',
-    phone_number: 'Inserisci un numero di telefono valido.',
     generic: 'Si è verificato un errore. Riprova più tardi.'
   };
 
@@ -60,7 +59,9 @@
 
     var iti = window.intlTelInput(phone, {
       initialCountry: PHONE_COUNTRY[I18N.lang],
-      preferredCountries: ['it', 'es', 'gb'],
+      // Only Italian, Spanish and UK mobile numbers are accepted.
+      onlyCountries: ['it', 'es', 'gb'],
+      preferredCountries: [],
       separateDialCode: true,
       utilsScript: ITI_UTILS
     });
@@ -72,12 +73,20 @@
 
     var submitting = false;
 
+    // Our own IT/ES/GB mobile rules (phone-check.js), so the check never
+    // depends on intl-tel-input's utils.js having loaded from the CDN.
+    function checkPhone() {
+      var selected = (iti.getSelectedCountryData().iso2 || 'it').toUpperCase();
+      return PhoneCheck.check(phone.value, selected);
+    }
+
     function validate() {
       var errors = {};
       if (!NAME_RE.test(firstname.value.trim())) errors.first_name = MESSAGES.first_name;
       if (!NAME_RE.test(lastname.value.trim())) errors.last_name = MESSAGES.last_name;
       if (!EMAIL_RE.test(email.value.trim())) errors.email = MESSAGES.email;
-      if (!phone.value.trim() || !iti.isValidNumber()) errors.phone_number = MESSAGES.phone_number;
+      var phoneCheck = checkPhone();
+      if (!phoneCheck.ok) errors.phone_number = PhoneCheck.MESSAGES[phoneCheck.reason];
       return errors;
     }
 
@@ -104,7 +113,7 @@
           firstname: firstname.value.trim(),
           lastname: lastname.value.trim(),
           email: email.value.trim(),
-          mobile: iti.getNumber(), // E.164, e.g. +393123456789
+          mobile: checkPhone().e164, // E.164, e.g. +393478129054
           click_id: getClickId(),
           website: honeypot ? honeypot.value : ''
         })

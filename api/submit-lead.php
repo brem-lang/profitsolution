@@ -10,6 +10,8 @@
 
 declare(strict_types=1);
 
+require __DIR__ . '/phone-check.php';
+
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
@@ -148,7 +150,7 @@ $str = static fn(string $k): string => is_string($input[$k] ?? null) ? trim($inp
 $firstname = $str('firstname');
 $lastname  = $str('lastname');
 $email     = $str('email');
-$mobile    = preg_replace('/[\s\-().]/', '', $str('mobile')) ?? '';
+$mobile    = $str('mobile');
 $clickId   = $str('click_id');
 // Lead country from the visitor's IP (Cloudflare's CF-IPCountry header; the
 // site only accepts traffic through Cloudflare, which sets it): Italy → IT,
@@ -170,8 +172,13 @@ if (!preg_match($namePattern, $lastname)) {
 if (strlen($email) > 254 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
     $errors['email'] = 'Inserisci un indirizzo email valido.';
 }
-if (!preg_match('/^\+[1-9]\d{7,14}$/', $mobile)) {
-    $errors['phone_number'] = 'Inserisci un numero di telefono valido.';
+// Same IT/ES/GB mobile rules the form uses in the browser (phone-check.php).
+$phone = check_phone($mobile, 'IT');
+if ($phone['ok']) {
+    $mobile = $phone['e164'];
+} else {
+    $errors['phone_number'] = PHONE_MESSAGES[$phone['reason']];
+    error_log(sprintf('[submit-lead] phone rejected reason=%s', $phone['reason'])); // reason only, never the number
 }
 if ($clickId !== '' && !preg_match('/^[A-Za-z0-9._\-]{1,128}$/', $clickId)) {
     $clickId = ''; // drop malformed tracking values instead of rejecting the lead
