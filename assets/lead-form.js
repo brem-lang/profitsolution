@@ -106,7 +106,6 @@
           email: email.value.trim(),
           mobile: iti.getNumber(), // E.164, e.g. +393123456789
           click_id: getClickId(),
-          lang: I18N.lang,
           website: honeypot ? honeypot.value : ''
         })
       })

@@ -123,7 +123,6 @@ $env = load_env(dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env');
 $supabaseUrl = rtrim($env['SUPABASE_URL'] ?? '', '/');
 $apiKey      = $env['AFFILIATE_API_KEY'] ?? '';
 $funnel      = $env['LEAD_FUNNEL'] ?? 'profitsolutions';
-$country     = $env['LEAD_COUNTRY'] ?? 'IT';
 $supabaseHost = parse_url($supabaseUrl, PHP_URL_HOST);
 
 if ($apiKey === '' || !is_string($supabaseHost) || parse_url($supabaseUrl, PHP_URL_SCHEME) !== 'https') {
@@ -151,8 +150,11 @@ $lastname  = $str('lastname');
 $email     = $str('email');
 $mobile    = preg_replace('/[\s\-().]/', '', $str('mobile')) ?? '';
 $clickId   = $str('click_id');
-// Lead country follows the page language the visitor submitted in.
-$country   = ['it' => 'IT', 'es' => 'ES', 'en' => 'GB'][$str('lang')] ?? $country;
+// Lead country from the visitor's IP (Cloudflare's CF-IPCountry header; the
+// site only accepts traffic through Cloudflare, which sets it): Italy → IT,
+// Spain → ES, anywhere else or unknown → GB.
+$ipCountry = strtoupper((string) ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''));
+$country   = in_array($ipCountry, ['IT', 'ES'], true) ? $ipCountry : 'GB';
 
 $namePattern = "/^\p{L}[\p{L}\p{M}' .\-]{0,29}$/u";
 $errors = [];
