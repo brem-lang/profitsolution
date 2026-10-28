@@ -153,7 +153,13 @@ $lastname  = $str('lastname');
 $email     = $str('email');
 $mobile    = $str('mobile');
 $clickId   = $str('click_id');
-$country   = '';
+// Lead country from the visitor's IP (Cloudflare's CF-IPCountry header; the
+// site only accepts traffic through Cloudflare, which sets it): Italy → IT,
+// Spain → ES, anywhere else or unknown → LEAD_COUNTRY_FALLBACK (default GB).
+$fallback  = (string) ($env['LEAD_COUNTRY_FALLBACK'] ?? '');
+$fallback  = preg_match('/^[A-Z]{2}$/', $fallback) ? $fallback : 'GB';
+$ipCountry = strtoupper((string) ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''));
+$country   = in_array($ipCountry, ['IT', 'ES'], true) ? $ipCountry : $fallback;
 
 $namePattern = "/^\p{L}[\p{L}\p{M}' .\-]{0,29}$/u";
 $errors = [];
@@ -182,9 +188,6 @@ if (!$emailCheck['ok'] && $emailCheck['reason'] !== 'typo') {
 $phone = check_phone($mobile, 'IT');
 if ($phone['ok']) {
     $mobile = $phone['e164'];
-    // The lead API checks the mobile against country_code's numbering rules,
-    // so the country is the number's own (IT/ES/GB), not the visitor's location.
-    $country = $phone['country'];
 } else {
     $errors['phone_number'] = PHONE_MESSAGES[$phone['reason']];
     error_log(sprintf('[submit-lead] phone rejected reason=%s', $phone['reason'])); // reason only, never the number
@@ -248,10 +251,8 @@ $requestId = is_array($result) && is_string($result['request_id'] ?? null) ? $re
 if ($status < 200 || $status >= 300 || !is_array($result) || ($result['success'] ?? false) !== true) {
     // Log for troubleshooting (no API key, no lead PII), show a generic message.
     $upstreamMsg = is_array($result) && is_string($result['message'] ?? null) ? $result['message'] : 'non-JSON response';
-    // Field names the API rejected, never their values.
-    $apiFields = is_array($result) && is_array($result['errors'] ?? null) ? implode(',', array_keys($result['errors'])) : '';
-    error_log(sprintf('[submit-lead] %s → rejected status=%d request_id=%s message="%s" fields=%s',
-        $sent, $status, $requestId, substr($upstreamMsg, 0, 200), $apiFields !== '' ? $apiFields : '-'));
+    error_log(sprintf('[submit-lead] %s → rejected status=%d request_id=%s message="%s"',
+        $sent, $status, $requestId, substr($upstreamMsg, 0, 200)));
     if ($status === 409) {
         fail(409, 'Questo indirizzo e-mail o numero di telefono è già registrato.');
     }
