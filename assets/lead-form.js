@@ -5,7 +5,7 @@
   var ITI_UTILS = 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.2.1/js/utils.js';
   var NAME_RE = /^[\p{L}][\p{L}\p{M}' .\-]{0,29}$/u;
   var CLICK_ID_RE = /^[A-Za-z0-9._\-]{1,128}$/;
-  var PHONE_COUNTRY = { it: 'it', es: 'es', en: 'gb' };
+  var PHONE_COUNTRY = { it: 'it', es: 'es', en: 'gb', de: 'de', ar: 'sa' };
 
   var MESSAGES = {
     first_name: 'Inserisci un nome valido.',
@@ -57,8 +57,8 @@
 
     var iti = window.intlTelInput(phone, {
       initialCountry: PHONE_COUNTRY[I18N.lang],
-      // Only Italian, Spanish and UK mobile numbers are accepted.
-      onlyCountries: ['it', 'es', 'gb'],
+      // Only Italian, Spanish, UK, German and Saudi mobile numbers are accepted.
+      onlyCountries: ['it', 'es', 'gb', 'de', 'sa'],
       preferredCountries: [],
       separateDialCode: true,
       utilsScript: ITI_UTILS
@@ -73,7 +73,7 @@
     // A suggested typo fix is shown once; submitting the same address again keeps it.
     var typoShownFor = '';
 
-    // Our own IT/ES/GB mobile rules (phone-check.js), so the check never
+    // Our own IT/ES/GB/DE/SA mobile rules (phone-check.js), so the check never
     // depends on intl-tel-input's utils.js having loaded from the CDN.
     function checkPhone() {
       var selected = (iti.getSelectedCountryData().iso2 || 'it').toUpperCase();

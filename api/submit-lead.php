@@ -155,11 +155,12 @@ $mobile    = $str('mobile');
 $clickId   = $str('click_id');
 // Lead country from the visitor's IP (Cloudflare's CF-IPCountry header; the
 // site only accepts traffic through Cloudflare, which sets it): Italy → IT,
-// Spain → ES, anywhere else or unknown → LEAD_COUNTRY_FALLBACK (default GB).
+// Spain → ES, Germany → DE, Saudi Arabia → SA, anywhere else or unknown →
+// LEAD_COUNTRY_FALLBACK (default GB).
 $fallback  = (string) ($env['LEAD_COUNTRY_FALLBACK'] ?? '');
 $fallback  = preg_match('/^[A-Z]{2}$/', $fallback) ? $fallback : 'GB';
 $ipCountry = strtoupper((string) ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''));
-$country   = in_array($ipCountry, ['IT', 'ES'], true) ? $ipCountry : $fallback;
+$country   = in_array($ipCountry, ['IT', 'ES', 'DE', 'SA'], true) ? $ipCountry : $fallback;
 
 $namePattern = "/^\p{L}[\p{L}\p{M}' .\-]{0,29}$/u";
 $errors = [];
@@ -184,7 +185,7 @@ if (!$emailCheck['ok'] && $emailCheck['reason'] !== 'typo') {
         error_log('[submit-lead] email rejected reason=domain');
     }
 }
-// Same IT/ES/GB mobile rules the form uses in the browser (phone-check.php).
+// Same IT/ES/GB/DE/SA mobile rules the form uses in the browser (phone-check.php).
 $phone = check_phone($mobile, 'IT');
 if ($phone['ok']) {
     $mobile = $phone['e164'];
