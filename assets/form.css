@@ -93,6 +93,31 @@ input.reg-form__input.error{
 .intgrtn-form-signup .reg-form .iti {
 	width: 100%;
 }
+/* Arabic (RTL): keep the dial code on the left of the number, reading +966.
+   Undoes intl-tel-input's own [dir=rtl] rules and the right padding its script sets. */
+html[dir="rtl"] .iti {
+	direction: ltr;
+}
+html[dir="rtl"] .iti .iti__flag-container {
+	right: auto;
+	left: 0;
+}
+html[dir="rtl"] .iti.iti--show-flags .iti__selected-dial-code {
+	margin-right: 0;
+	margin-left: 6px;
+}
+html[dir="rtl"] .iti .iti__arrow {
+	margin-right: 0;
+	margin-left: 6px;
+}
+/* Arabic (RTL): email sits on the right like the other fields; dir="ltr" keeps the address typing order */
+html[dir="rtl"] .reg-form input[type=email] {
+	text-align: right;
+}
+html[dir="rtl"] .iti input[type=tel] {
+	padding-right: 6px !important;
+	padding-left: 86px !important;
+}
 .intgrtn-form-signup .reg-form__button {
 	margin: 0 auto;
 	display: block;

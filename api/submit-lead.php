@@ -153,15 +153,6 @@ $lastname  = $str('lastname');
 $email     = $str('email');
 $mobile    = $str('mobile');
 $clickId   = $str('click_id');
-// Lead country from the visitor's IP (Cloudflare's CF-IPCountry header; the
-// site only accepts traffic through Cloudflare, which sets it): Italy → IT,
-// Spain → ES, Germany → DE, Saudi Arabia → SA, anywhere else or unknown →
-// LEAD_COUNTRY_FALLBACK (default GB).
-$fallback  = (string) ($env['LEAD_COUNTRY_FALLBACK'] ?? '');
-$fallback  = preg_match('/^[A-Z]{2}$/', $fallback) ? $fallback : 'GB';
-$ipCountry = strtoupper((string) ($_SERVER['HTTP_CF_IPCOUNTRY'] ?? ''));
-$country   = in_array($ipCountry, ['IT', 'ES', 'DE', 'SA'], true) ? $ipCountry : $fallback;
-
 $namePattern = "/^\p{L}[\p{L}\p{M}' .\-]{0,29}$/u";
 $errors = [];
 
@@ -189,6 +180,9 @@ if (!$emailCheck['ok'] && $emailCheck['reason'] !== 'typo') {
 $phone = check_phone($mobile, 'IT');
 if ($phone['ok']) {
     $mobile = $phone['e164'];
+    // Lead country = the mobile's country: the API rejects a mobile that
+    // doesn't belong to country_code (a +49 number sent as GB always failed).
+    $country = $phone['country'];
 } else {
     $errors['phone_number'] = PHONE_MESSAGES[$phone['reason']];
     error_log(sprintf('[submit-lead] phone rejected reason=%s', $phone['reason'])); // reason only, never the number
