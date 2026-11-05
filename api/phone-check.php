@@ -2,18 +2,18 @@
 declare(strict_types=1);
 
 /*
- * Mobile phone check for the lead form (IT / ES / GB / DE / SA numbers only).
+ * Mobile phone check for the lead form (IT / ES / GB / DE / SA / PT numbers only).
  * PHP copy of assets/phone-check.js — keep the rules identical.
  *
  * check_phone($raw, $defaultCountry) → ['ok' => bool, 'e164' => string, 'country' => string, 'reason' => string]
  *   reason when not ok: letters | country | short | long | landline | invalid
  */
 
-const PHONE_DIAL = ['IT' => '39', 'ES' => '34', 'GB' => '44', 'DE' => '49', 'SA' => '966'];
+const PHONE_DIAL = ['IT' => '39', 'ES' => '34', 'GB' => '44', 'DE' => '49', 'SA' => '966', 'PT' => '351'];
 
 const PHONE_MESSAGES = [
     'letters'  => 'Il numero di telefono può contenere solo cifre.',
-    'country'  => 'Sono accettati solo numeri italiani (+39), spagnoli (+34), britannici (+44), tedeschi (+49) o sauditi (+966).',
+    'country'  => 'Sono accettati solo numeri italiani (+39), spagnoli (+34), britannici (+44), tedeschi (+49), sauditi (+966) o portoghesi (+351).',
     'short'    => 'Il numero di telefono è troppo corto.',
     'long'     => 'Il numero di telefono è troppo lungo.',
     'landline' => 'Sembra un numero fisso: inserisci un numero di cellulare.',
@@ -63,6 +63,11 @@ function phone_check_national(string $country, string $n): string
     } elseif ($country === 'SA') {
         // Mobiles are 5x xxx xxxx; area codes 1x, 4x, 6x, 7x are landlines.
         if (!preg_match('/^5/', $n)) return preg_match('/^[1467]/', $n) ? 'landline' : 'invalid';
+        if ($len < 9) return 'short';
+        if ($len > 9) return 'long';
+    } elseif ($country === 'PT') {
+        // Mobiles are 91 / 92 / 93 / 96 + 7 digits; 2x numbers are landlines.
+        if (!preg_match('/^9[1236]/', $n)) return preg_match('/^2/', $n) ? 'landline' : 'invalid';
         if ($len < 9) return 'short';
         if ($len > 9) return 'long';
     }

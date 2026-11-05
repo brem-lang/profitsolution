@@ -1,18 +1,18 @@
 /*
- * Mobile phone check for the lead forms (IT / ES / GB / DE / SA numbers only).
+ * Mobile phone check for the lead forms (IT / ES / GB / DE / SA / PT numbers only).
  * Same rules run in the browser (window.PhoneCheck) and on the brelliozo
  * server (require). Keep in sync with profitsolutions/api/submit-lead.php
  * (check_phone) and vettro/src/lib/phone.ts.
  *
  * PhoneCheck.check(raw, defaultCountry) → { ok, e164, country, reason }
  *   raw            what the visitor typed ("312 345 6789", "+34 612…", "0039…")
- *   defaultCountry 'IT' | 'ES' | 'GB' | 'DE' | 'SA' — used when no international prefix is typed
+ *   defaultCountry 'IT' | 'ES' | 'GB' | 'DE' | 'SA' | 'PT' — used when no international prefix is typed
  *   reason         when !ok: 'letters' | 'country' | 'short' | 'long' | 'landline' | 'invalid'
  */
 (function (root) {
   'use strict';
 
-  var DIAL = { IT: '39', ES: '34', GB: '44', DE: '49', SA: '966' };
+  var DIAL = { IT: '39', ES: '34', GB: '44', DE: '49', SA: '966', PT: '351' };
 
   // Country whose dial code starts the digits (codes are 2 or 3 digits long).
   function countryFromDial(digits) {
@@ -23,7 +23,7 @@
   // Italian source messages; pages translate them with I18N.t().
   var MESSAGES = {
     letters: 'Il numero di telefono può contenere solo cifre.',
-    country: 'Sono accettati solo numeri italiani (+39), spagnoli (+34), britannici (+44), tedeschi (+49) o sauditi (+966).',
+    country: 'Sono accettati solo numeri italiani (+39), spagnoli (+34), britannici (+44), tedeschi (+49), sauditi (+966) o portoghesi (+351).',
     short: 'Il numero di telefono è troppo corto.',
     long: 'Il numero di telefono è troppo lungo.',
     landline: 'Sembra un numero fisso: inserisci un numero di cellulare.',
@@ -67,6 +67,11 @@
     } else if (country === 'SA') {
       // Mobiles are 5x xxx xxxx; area codes 1x, 4x, 6x, 7x are landlines.
       if (!/^5/.test(n)) return /^[1467]/.test(n) ? 'landline' : 'invalid';
+      if (n.length < 9) return 'short';
+      if (n.length > 9) return 'long';
+    } else if (country === 'PT') {
+      // Mobiles are 91 / 92 / 93 / 96 + 7 digits; 2x numbers are landlines.
+      if (!/^9[1236]/.test(n)) return /^2/.test(n) ? 'landline' : 'invalid';
       if (n.length < 9) return 'short';
       if (n.length > 9) return 'long';
     }

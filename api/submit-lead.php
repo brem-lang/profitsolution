@@ -176,7 +176,7 @@ if (!$emailCheck['ok'] && $emailCheck['reason'] !== 'typo') {
         error_log('[submit-lead] email rejected reason=domain');
     }
 }
-// Same IT/ES/GB/DE/SA mobile rules the form uses in the browser (phone-check.php).
+// Same IT/ES/GB/DE/SA/PT mobile rules the form uses in the browser (phone-check.php).
 $phone = check_phone($mobile, 'IT');
 if ($phone['ok']) {
     $mobile = $phone['e164'];
